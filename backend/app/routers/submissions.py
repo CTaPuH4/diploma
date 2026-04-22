@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from typing import List
+import asyncio
 
+from app.utils.tests import judge_submission
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.submission import Submission, SubmissionStatus
@@ -27,6 +29,7 @@ async def create_submission(
     db: AsyncSession = Depends(get_db)
 ):
     """Студент подаёт решение на задание"""
+    print("👉 STEP 1: request received")
     result = await db.execute(
         text("""
             SELECT id, group_id FROM tasks WHERE id = :task_id
@@ -59,11 +62,25 @@ async def create_submission(
     db.add(new_submission)
     await db.commit()
     await db.refresh(new_submission)
+    print("👉 STEP 2: saved submission_id =", new_submission.id)
 
     # === ЗАГЛУШКИ ===
     # TODO: Запуск автотестов
     # TODO: Отправка кода на анализ LLM
     print(f"[ЗАГЛУШКА] Сабмишен #{new_submission.id} создан.")
+
+    print("👉 CREATED:", new_submission.id)
+
+    # 🔥 ВЫЗОВ JUDGE
+    asyncio.create_task(
+        judge_submission(
+            new_submission.id,
+            submission_data.code,
+            submission_data.task_id,
+        )
+    )
+
+    print("👉 JUDGE TASK STARTED")
 
     return new_submission
 

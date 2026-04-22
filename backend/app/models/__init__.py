@@ -12,3 +12,10 @@ __all__ = [
     "User", "UserRole", "Group", "Task", "Submission", "SubmissionStatus",
     "TestCase", "InlineComment", "Base"
 ]
+
+
+
+
+
+a, b = map(int, input().split())
+print(a + b)

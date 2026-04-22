@@ -2,123 +2,94 @@ import asyncio
 import tempfile
 import os
 import shutil
-import uuid
 
-DOCKER_TIMEOUT = 3  # секунды
+from sqlalchemy import select
+from app.database import AsyncSessionLocal
+from app.models.test_case import TestCase
+from app.models.submission import Submission
 
 
-async def run_tests(code: str, language: str, tests: list[dict]):
-    temp_dir = tempfile.mkdtemp(prefix="submission_")
-    filename = "main.py" if language == "python" else "main.cpp"
-    filepath = os.path.join(temp_dir, filename)
+# -------------------------
+# utils
+# -------------------------
+def normalize(s: str) -> str:
+    return s.strip().replace("\r", "")
 
-    # записываем код
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(code)
 
-    container_name = f"runner_{uuid.uuid4().hex[:8]}"
-    results = []
+async def run_python(file_path: str, input_data: str):
+    proc = await asyncio.create_subprocess_exec(
+        "python",
+        file_path,
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
 
-    try:
-        if language == "python":
-            image = "python:3.11-slim"
-            run_cmd = f"python {filename}"
+    stdout, stderr = await proc.communicate(input=input_data.encode())
 
-        elif language == "cpp":
-            image = "gcc:12"
+    return stdout.decode(), stderr.decode(), proc.returncode
 
-            # компиляция
-            compile_process = await asyncio.create_subprocess_shell(
-                f"""
-                docker run --rm \
-                --network none \
-                --memory 128m \
-                --cpus 0.5 \
-                -v {temp_dir}:/app \
-                -w /app \
-                {image} \
-                g++ {filename} -O2 -o main
-                """,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
 
-            stdout, stderr = await compile_process.communicate()
+# -------------------------
+# MAIN JUDGE FUNCTION
+# -------------------------
+async def judge_submission(submission_id: int, code: str, task_id: int):
+    print("\n🔥 JUDGE START:", submission_id)
 
-            if compile_process.returncode != 0:
-                return [{
-                    "error": "Compilation Error",
-                    "details": stderr.decode()
-                }]
+    async with AsyncSessionLocal() as db:
 
-            run_cmd = "./main"
+        # 1. load tests
+        result = await db.execute(
+            select(TestCase).where(TestCase.task_id == task_id)
+        )
+        tests = result.scalars().all()
 
-        else:
-            raise ValueError("Unsupported language")
+        # 2. temp file
+        temp_dir = tempfile.mkdtemp(prefix="judge_")
+        file_path = os.path.join(temp_dir, "main.py")
 
-        # прогон тестов
-        for test in tests:
-            try:
-                process = await asyncio.create_subprocess_shell(
-                    f"""
-                    docker run --rm -i \
-                    --network none \
-                    --memory 128m \
-                    --cpus 0.5 \
-                    --pids-limit 64 \
-                    --read-only \
-                    -v {temp_dir}:/app \
-                    -w /app \
-                    {image} {run_cmd}
-                    """,
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(code)
 
-                try:
-                    stdout, stderr = await asyncio.wait_for(
-                        process.communicate(input=test["input"].encode()),
-                        timeout=DOCKER_TIMEOUT
-                    )
-                except asyncio.TimeoutError:
-                    process.kill()
-                    results.append({
-                        "input": test["input"],
-                        "status": "TLE",
-                        "passed": False
-                    })
-                    continue
+        results = []
+        passed = 0
 
-                if process.returncode != 0:
-                    results.append({
-                        "input": test["input"],
-                        "status": "RE",
-                        "error": stderr.decode(),
-                        "passed": False
-                    })
-                    continue
+        try:
+            # 3. run tests
+            for t in tests:
+                print("🧪 TEST:", t.input)
 
-                output = stdout.decode().strip()
-                expected = test["output"].strip()
+                out, err, code_ret = await run_python(file_path, t.input)
+
+                actual = normalize(out)
+                expected = normalize(t.output)
+
+                ok = (actual == expected) and code_ret == 0
+
+                if ok:
+                    passed += 1
 
                 results.append({
-                    "input": test["input"],
+                    "input": t.input,
                     "expected": expected,
-                    "actual": output,
-                    "status": "OK" if output == expected else "WA",
-                    "passed": output == expected
+                    "actual": actual,
+                    "status": "OK" if ok else "WA"
                 })
 
-            except Exception as e:
-                results.append({
-                    "input": test["input"],
-                    "status": "ERROR",
-                    "error": str(e),
-                    "passed": False
-                })
+            # 4. save result
+            submission = await db.get(Submission, submission_id)
 
-    finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+            submission.test_result = str({
+                "passed": passed,
+                "total": len(tests),
+                "results": results
+            })
 
-    return results
+            submission.status = "analyzing"
+
+            await db.commit()
+
+            print("🔥 JUDGE DONE:", passed, "/", len(tests))
+
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
