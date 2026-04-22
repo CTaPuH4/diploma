@@ -21,7 +21,7 @@ class Task(Base):
     test_cases = relationship(
         "TestCase", back_populates="task", cascade="all, delete-orphan"
     )
-    group = relationship("Group")
+    group = relationship("Group", foreign_keys=[group_id])
     created_by = relationship("User", foreign_keys=[created_by_id])
 
     def __repr__(self):

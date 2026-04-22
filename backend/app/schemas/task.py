@@ -1,7 +1,13 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
+
+
+class TestCaseCreate(BaseModel):
+    input: str
+    output: str
+    is_hidden: bool = False
 
 
 class TaskCreate(BaseModel):
@@ -9,6 +15,7 @@ class TaskCreate(BaseModel):
     text: str
     deadline: Optional[datetime] = None
     group_id: int
+    test_cases: List[TestCaseCreate] = []
 
 
 class TaskRead(BaseModel):

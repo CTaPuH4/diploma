@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.auth import UserRegister, Token
-from app.utils.security import get_password_hash, create_access_token, verify_password
+from app.schemas.auth import Token, UserRegister
+from app.utils.security import (create_access_token, get_password_hash,
+                                verify_password)
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -24,6 +25,18 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Пользователь с таким username уже существует"
         )
+
+    if user_data.group_id is not None:
+        # Проверка существования группы
+        result = await db.execute(
+            text("SELECT id FROM groups WHERE id = :group_id"),
+            {"group_id": user_data.group_id}
+        )
+        if not result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Группа с id={user_data.group_id} не найдена"
+            )
 
     hashed_password = get_password_hash(user_data.password)
 
