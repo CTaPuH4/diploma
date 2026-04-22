@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime, timedelta, timezone
+from sqlalchemy.sql import func
 
 from app.database import Base
 from sqlalchemy import Column, DateTime
@@ -33,15 +33,12 @@ class Submission(Base):
     language = Column(SQLEnum(SubmissionLanguage), nullable=False)
 
     status = Column(SQLEnum(SubmissionStatus), default=SubmissionStatus.submitted)
-    test_result = Column(Text, nullable=True)           # JSON с результатами тестов
+    test_result = Column(Text, nullable=True)          # JSON с результатами тестов
     llm_comment = Column(Text, nullable=True)           # комментарий от LLM
     final_comment = Column(Text, nullable=True)         # финальный комментарий
     grade = Column(Integer, nullable=True)              # оценка
 
-    created_at = Column(
-        DateTime(timezone=True),
-        default=(datetime.now(timezone.utc) + timedelta(hours=3))
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Связи
     user = relationship("User", back_populates="submissions")

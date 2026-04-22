@@ -4,7 +4,7 @@ from sqlalchemy import text
 from typing import List
 import asyncio
 
-from app.utils.tests import judge_submission
+from app.services.judge import judge_submission
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.submission import Submission, SubmissionStatus
@@ -75,8 +75,9 @@ async def create_submission(
     asyncio.create_task(
         judge_submission(
             new_submission.id,
-            submission_data.code,
-            submission_data.task_id,
+            new_submission.code,
+            new_submission.task_id,
+            new_submission.language
         )
     )
 
