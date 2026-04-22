@@ -39,10 +39,8 @@ class Submission(Base):
     grade = Column(Integer, nullable=True)              # оценка
 
     created_at = Column(
-        DateTime,
-        default=datetime.now(
-            tz=timezone(timedelta(hours=3))
-        )
+        DateTime(timezone=True),
+        default=(datetime.now(timezone.utc) + timedelta(hours=3))
     )
 
     # Связи

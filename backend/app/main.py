@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from app.database import create_db_and_tables, engine
-from app.routers import auth, tasks, groups, users
+from app.routers import auth, tasks, groups, users, submissions
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -34,6 +34,7 @@ app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(groups.router)
 app.include_router(users.router)
+app.include_router(submissions.router)
 
 
 @app.get("/")
