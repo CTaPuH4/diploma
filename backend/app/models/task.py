@@ -11,7 +11,9 @@ class Task(Base):
     text = Column(Text, nullable=False)
     deadline = Column(DateTime, nullable=True)
 
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
+    group_id = Column(
+        Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
+    )
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Связи

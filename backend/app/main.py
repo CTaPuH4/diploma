@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from app.database import create_db_and_tables, engine
-from app.routers import auth, tasks
+from app.routers import auth, tasks, groups
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,6 +32,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(tasks.router)
+app.include_router(groups.router)
 
 
 @app.get("/")

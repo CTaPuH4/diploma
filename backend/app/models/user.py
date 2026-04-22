@@ -21,7 +21,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.student)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
+    group_id = Column(
+        Integer, ForeignKey("groups.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Связи
     submissions = relationship(
