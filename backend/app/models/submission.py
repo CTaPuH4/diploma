@@ -1,19 +1,25 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from app.database import Base
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 
 
 class SubmissionStatus(str, enum.Enum):
-    pending = "pending"
-    testing = "testing"
-    llm_analyzing = "llm_analyzing"
-    completed = "completed"
-    error = "error"
+    submitted = "submitted"
+    analyzing = "analyzing"
+    on_review = "on_review"
+    passed = "passed"
+    failed = "failed"
+
+
+class SubmissionLanguage(str, enum.Enum):
+    python = "python"
+    cpp = "cpp"
+    other = "other"
 
 
 class Submission(Base):
@@ -24,15 +30,20 @@ class Submission(Base):
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
 
     code = Column(Text, nullable=False)
-    language = Column(String, nullable=False)           # "python", "cpp" и т.д.
+    language = Column(SQLEnum(SubmissionLanguage), nullable=False)
 
-    status = Column(SQLEnum(SubmissionStatus), default=SubmissionStatus.pending)
+    status = Column(SQLEnum(SubmissionStatus), default=SubmissionStatus.submitted)
     test_result = Column(Text, nullable=True)           # JSON с результатами тестов
     llm_comment = Column(Text, nullable=True)           # комментарий от LLM
     final_comment = Column(Text, nullable=True)         # финальный комментарий
     grade = Column(Integer, nullable=True)              # оценка
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(
+        DateTime,
+        default=datetime.now(
+            tz=timezone(timedelta(hours=3))
+        )
+    )
 
     # Связи
     user = relationship("User", back_populates="submissions")

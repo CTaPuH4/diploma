@@ -26,3 +26,17 @@ class UserRead(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
+
+
+class UserUpdateSelf(BaseModel):
+    full_name: Optional[str] = None
+    group_id: Optional[int] = None
+
+
+class UserUpdate(UserUpdateSelf):
+    role: Optional[UserRole] = None
+
+
+class UserChangePassword(BaseModel):
+    old_password: str
+    new_password: str
