@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from app.core.config import settings
 from app.database import Base
-from app.models import User  # noqa
+from app import models  # noqa: F401
 from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
@@ -16,7 +16,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL + '?async_fallback=True')
+config.set_main_option("sqlalchemy.url", settings.ALEMBIC_DATABASE_URL)
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel

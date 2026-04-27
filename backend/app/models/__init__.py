@@ -1,4 +1,3 @@
-# Экспортируем Base из database
 from app.database import Base
 
 from .group import Group
@@ -9,6 +8,13 @@ from .test_case import TestCase
 from .user import User, UserRole
 
 __all__ = [
-    "User", "UserRole", "Group", "Task", "Submission", "SubmissionStatus",
-    "TestCase", "InlineComment", "Base"
+    "User",
+    "UserRole",
+    "Group",
+    "Task",
+    "Submission",
+    "SubmissionStatus",
+    "TestCase",
+    "InlineComment",
+    "Base",
 ]

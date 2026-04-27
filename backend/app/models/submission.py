@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import enum
-from sqlalchemy.sql import func
+from datetime import datetime
 
 from app.database import Base
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Boolean, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 
 
 class SubmissionStatus(str, enum.Enum):
@@ -25,25 +28,38 @@ class SubmissionLanguage(str, enum.Enum):
 class Submission(Base):
     __tablename__ = "submissions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
+    task_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("tasks.id"), nullable=False
+    )
 
-    code = Column(Text, nullable=False)
-    language = Column(SQLEnum(SubmissionLanguage), nullable=False)
+    code: Mapped[str] = mapped_column(Text, nullable=False)
+    language: Mapped[SubmissionLanguage] = mapped_column(
+        SQLEnum(SubmissionLanguage),
+        nullable=False,
+    )
 
-    status = Column(SQLEnum(SubmissionStatus), default=SubmissionStatus.submitted)
-    test_result = Column(Text, nullable=True)          # JSON с результатами тестов
-    llm_comment = Column(Text, nullable=True)           # комментарий от LLM
-    final_comment = Column(Text, nullable=True)         # финальный комментарий
-    grade = Column(Integer, nullable=True)              # оценка
+    status: Mapped[SubmissionStatus] = mapped_column(
+        SQLEnum(SubmissionStatus),
+        default=SubmissionStatus.submitted,
+    )
+    test_result: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    final_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    grade: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
 
-    # Связи
-    user = relationship("User", back_populates="submissions")
-    task = relationship("Task", back_populates="submissions")
-    inline_comments = relationship(
+    user: Mapped["User"] = relationship("User", back_populates="submissions")
+    task: Mapped["Task"] = relationship("Task", back_populates="submissions")
+    inline_comments: Mapped[list["InlineComment"]] = relationship(
         "InlineComment", back_populates="submission", cascade="all, delete-orphan"
     )
 

@@ -18,7 +18,6 @@ class UserRegister(BaseModel):
     username: str
     full_name: str
     password: str
-    role: UserRole = UserRole.student
     group_id: Optional[int] = None
 
 

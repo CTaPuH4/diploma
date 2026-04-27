@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import List, Optional
 from app.models.submission import SubmissionStatus, SubmissionLanguage
@@ -16,8 +16,7 @@ class SubmissionResponse(SubmissionBase):
     status: SubmissionStatus
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InlineComment(BaseModel):
@@ -25,8 +24,7 @@ class InlineComment(BaseModel):
     line_end: int
     text: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TeacherSubmissionRead(SubmissionBase):
@@ -35,11 +33,13 @@ class TeacherSubmissionRead(SubmissionBase):
     status: SubmissionStatus
     test_result: Optional[str] = None
     llm_comment: Optional[str] = None
+    final_comment: Optional[str] = None
+    grade: Optional[int] = None
     created_at: datetime
-    inline_comments: List[InlineComment] = []
+    student_full_name: Optional[str] = None
+    inline_comments: List[InlineComment] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TeacherSubmissionUpdate(BaseModel):
@@ -53,7 +53,6 @@ class StudentSubmissionRead(SubmissionBase):
     final_comment: Optional[str] = None
     grade: Optional[int] = None
     created_at: datetime
-    inline_comments: List[InlineComment] = []
+    inline_comments: List[InlineComment] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

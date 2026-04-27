@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TestCaseCreate(BaseModel):
@@ -15,7 +15,7 @@ class TaskCreate(BaseModel):
     text: str
     deadline: Optional[datetime] = None
     group_id: int
-    test_cases: List[TestCaseCreate] = []
+    test_cases: List[TestCaseCreate] = Field(default_factory=list)
 
 
 class TaskRead(BaseModel):
@@ -26,8 +26,7 @@ class TaskRead(BaseModel):
     group_id: int
     created_by_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TestCaseRead(BaseModel):
@@ -36,8 +35,7 @@ class TestCaseRead(BaseModel):
     output: str
     is_hidden: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TaskDetailRead(BaseModel):
@@ -48,7 +46,6 @@ class TaskDetailRead(BaseModel):
     group_id: int
     created_by_id: int
 
-    test_cases: List[TestCaseRead] = []
+    test_cases: List[TestCaseRead] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,21 +1,23 @@
+from __future__ import annotations
+
 from app.database import Base
-from sqlalchemy import Column, ForeignKey, Integer, Text, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, ForeignKey, Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class TestCase(Base):
     __tablename__ = "test_cases"
 
-    id = Column(Integer, primary_key=True, index=True)
-    task_id = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    task_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False
     )
 
-    input = Column(Text, nullable=False)
-    output = Column(Text, nullable=False)
-    is_hidden = Column(Boolean, default=False)
+    input: Mapped[str] = mapped_column(Text, nullable=False)
+    output: Mapped[str] = mapped_column(Text, nullable=False)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    task = relationship("Task", back_populates="test_cases")
+    task: Mapped["Task"] = relationship("Task", back_populates="test_cases")
 
     def __repr__(self):
         return f"<TestCase {self.id} for task {self.task_id}>"

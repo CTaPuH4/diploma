@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.models.user import UserRole
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class UserCreate(BaseModel):
@@ -19,8 +19,7 @@ class UserRead(BaseModel):
     role: UserRole
     group_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserLogin(BaseModel):
