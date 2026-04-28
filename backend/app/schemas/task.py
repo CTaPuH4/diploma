@@ -25,6 +25,7 @@ class TaskRead(BaseModel):
     deadline: Optional[datetime] = None
     group_id: int
     created_by_id: int
+    created_by_full_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -45,6 +46,7 @@ class TaskDetailRead(BaseModel):
     deadline: Optional[datetime] = None
     group_id: int
     created_by_id: int
+    created_by_full_name: Optional[str] = None
 
     test_cases: List[TestCaseRead] = Field(default_factory=list)
 

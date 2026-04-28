@@ -47,7 +47,7 @@ def format_test_result(
     summary: str | None = None,
     results: list[dict] | None = None,
 ) -> str:
-    parts = [f"PASSED: {passed}/{total}"]
+    parts = [f"Пройдено тестов: {passed}/{total}"]
 
     if summary:
         parts.append(summary)
@@ -55,10 +55,10 @@ def format_test_result(
     if results:
         parts.append(
             "\n".join(
-                f"Input: {r['input']}\n"
-                f"Expected: {r['expected']}\n"
-                f"Actual: {r['actual']}\n"
-                f"Status: {r['status']}\n"
+                f"Входные данные: {r['input']}\n"
+                f"Ожидаемый результат: {r['expected']}\n"
+                f"Фактический результат: {r['actual']}\n"
+                f"Статус: {r['status']}\n"
                 "------"
                 for r in results
             )
@@ -126,7 +126,7 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
             submission.test_result = format_test_result(
                 0,
                 0,
-                summary="No test cases configured for this task",
+                summary="Для этого задания не настроены автотесты",
             )
             await db.commit()
             await finalize_submission_review_status(submission_id)
@@ -141,7 +141,7 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
                 submission.test_result = format_test_result(
                     0,
                     len(tests),
-                    summary=f"JUDGE START ERROR:\n{err}",
+                    summary=f"Ошибка запуска автоматической проверки:\n{err}",
                 )
                 await db.commit()
                 await finalize_submission_review_status(submission_id)
@@ -161,7 +161,7 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
                     submission.test_result = format_test_result(
                         0,
                         len(tests),
-                        summary=f"COMPILATION ERROR:\n{err}",
+                        summary=f"Ошибка компиляции:\n{err}",
                     )
                     await db.commit()
                     await finalize_submission_review_status(submission_id)
@@ -184,7 +184,7 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
                             "input": t.input,
                             "expected": expected,
                             "actual": "",
-                            "status": "TLE",
+                            "status": "Превышено время выполнения",
                         }
                     )
                     continue
@@ -197,7 +197,9 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
                         "input": t.input,
                         "expected": expected,
                         "actual": actual,
-                        "status": "AC" if ok else "WA",
+                        "status": (
+                            "Тест пройден" if ok else "Неверный результат"
+                        ),
                     }
                 )
 

@@ -99,13 +99,18 @@ async def create_submission(
     else:
         skipped_reasons = []
         if submission_data.language == SubmissionLanguage.other:
-            skipped_reasons.append("language is not supported by the judge")
+            skipped_reasons.append(
+                "выбранный язык не поддерживается автоматической проверкой"
+            )
         if not task_has_test_cases:
-            skipped_reasons.append("task has no auto-tests")
+            skipped_reasons.append("для задания не заданы автотесты")
         new_submission.test_result = format_test_result(
             0,
             0,
-            summary=f"Judge skipped: {', '.join(skipped_reasons)}",
+            summary=(
+                "Автоматическая проверка пропущена: "
+                f"{', '.join(skipped_reasons)}"
+            ),
         )
         await db.commit()
         await db.refresh(new_submission)

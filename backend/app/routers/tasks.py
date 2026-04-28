@@ -11,9 +11,23 @@ from app.utils.rbac import PermissionChecker
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+
+
+def serialize_task(task: Task) -> dict:
+    return {
+        "id": task.id,
+        "title": task.title,
+        "text": task.text,
+        "deadline": task.deadline,
+        "group_id": task.group_id,
+        "created_by_id": task.created_by_id,
+        "created_by_full_name": (
+            task.created_by.full_name if task.created_by is not None else None
+        ),
+    }
 
 
 @router.post("/", response_model=TaskRead)
@@ -52,7 +66,15 @@ async def create_task(
             db.add(test_case)
         await db.commit()
 
-    return new_task
+    return {
+        "id": new_task.id,
+        "title": new_task.title,
+        "text": new_task.text,
+        "deadline": new_task.deadline,
+        "group_id": new_task.group_id,
+        "created_by_id": new_task.created_by_id,
+        "created_by_full_name": current_user.full_name,
+    }
 
 
 @router.get("/", response_model=List[TaskRead])
@@ -60,7 +82,7 @@ async def get_tasks(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(Task).order_by(Task.id.desc())
+    query = select(Task).options(joinedload(Task.created_by)).order_by(Task.id.desc())
 
     if current_user.role == UserRole.teacher:
         query = query.where(Task.created_by_id == current_user.id)
@@ -68,7 +90,7 @@ async def get_tasks(
         query = query.where(Task.group_id == current_user.group_id)
 
     result = await db.execute(query)
-    return result.scalars().all()
+    return [serialize_task(task) for task in result.scalars().all()]
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -103,7 +125,7 @@ async def get_task_detail(
 ):
     result = await db.execute(
         select(Task)
-        .options(selectinload(Task.test_cases))
+        .options(selectinload(Task.test_cases), joinedload(Task.created_by))
         .where(Task.id == task_id)
     )
     task = result.scalar_one_or_none()
@@ -134,11 +156,6 @@ async def get_task_detail(
     )
 
     return {
-        "id": task.id,
-        "title": task.title,
-        "text": task.text,
-        "deadline": task.deadline,
-        "group_id": task.group_id,
-        "created_by_id": task.created_by_id,
+        **serialize_task(task),
         "test_cases": visible_test_cases,
     }
