@@ -10,9 +10,9 @@ export type BadgeVariant =
   | "danger";
 
 const variants: Record<BadgeVariant, string> = {
-  default: "bg-primary text-primary-foreground",
+  default: "bg-primary text-primary-foreground shadow-sm shadow-primary/20",
   secondary: "bg-secondary text-secondary-foreground",
-  outline: "border border-border bg-background",
+  outline: "border border-border bg-card/70",
   success: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
   warning: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
   danger: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200",
@@ -26,7 +26,7 @@ export function Badge({ className, variant = "default", ...props }: BadgeProps) 
   return (
     <span
       className={cn(
-        "inline-flex min-w-0 items-center rounded-md px-2 py-1 text-xs font-medium leading-none",
+        "inline-flex min-w-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold leading-none",
         variants[variant],
         className,
       )}

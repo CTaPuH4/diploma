@@ -217,11 +217,11 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur">
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-20 border-b bg-card/85 shadow-[0_10px_30px_hsl(222_38%_12%/0.08)] backdrop-blur-xl">
         <div className="app-container flex min-h-16 items-center justify-between gap-4 py-3">
           <div className="min-w-0">
-            <p className="text-xl font-semibold">CodeCheck</p>
+            <p className="text-xl font-black tracking-tight text-primary">CodeCheck</p>
             <p className="truncate text-sm text-muted-foreground">
               {user.full_name} · {roleLabel(user.role)}
             </p>
@@ -241,8 +241,8 @@ function App() {
         </div>
       </header>
 
-      <div className="app-container grid gap-5 py-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="surface flex gap-1 overflow-x-auto rounded-lg p-2 lg:sticky lg:top-24 lg:block lg:h-fit lg:space-y-1 lg:overflow-visible">
+      <div className="app-container grid gap-5 py-5 lg:grid-cols-[244px_minmax(0,1fr)]">
+        <aside className="surface flex gap-1 overflow-x-auto rounded-lg p-2 lg:sticky lg:top-24 lg:block lg:h-fit lg:space-y-1 lg:overflow-visible lg:border-l-4 lg:border-l-primary">
           <NavButton active={view === "dashboard"} onClick={() => setView("dashboard")}>
             Обзор
           </NavButton>
@@ -271,7 +271,7 @@ function App() {
 
         <main className="min-w-0 space-y-5">
           {message && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-900 shadow-sm dark:border-amber-800 dark:bg-amber-950/90 dark:text-amber-100">
               {message}
             </div>
           )}
@@ -405,21 +405,21 @@ function AuthScreen({
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-background px-4 py-10">
+    <main className="grid min-h-screen place-items-center px-4 py-10">
       <div className="absolute right-4 top-4">
         <Button variant="outline" onClick={onToggleTheme}>
           {theme === "dark" ? "Светлая" : "Тёмная"}
         </Button>
       </div>
-      <Card className="w-full max-w-[440px]">
+      <Card className="section-shell w-full max-w-[460px]">
         <CardHeader>
-          <CardTitle className="text-2xl">CodeCheck</CardTitle>
+          <CardTitle className="text-3xl text-primary">CodeCheck</CardTitle>
           <CardDescription className="leading-6">
             Платформа проверки программных решений.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-5 grid grid-cols-2 rounded-md bg-muted p-1">
+          <div className="mb-5 grid grid-cols-2 rounded-md border bg-muted/60 p-1">
             <Button
               variant={mode === "login" ? "default" : "ghost"}
               onClick={() => setMode("login")}
@@ -480,7 +480,7 @@ function Dashboard({
 
   return (
     <section className="space-y-5">
-      <div className="surface rounded-lg p-5">
+      <div className="section-shell rounded-lg p-5">
         <h1 className="text-2xl font-semibold tracking-tight">Обзор</h1>
         {isStudent && (
           <p className="mt-1 text-sm text-muted-foreground">
@@ -578,7 +578,7 @@ function ProfileView({
 
   return (
     <section className="min-w-0 space-y-5">
-      <div className="surface rounded-lg p-5">
+      <div className="section-shell rounded-lg p-5">
         <h1 className="text-2xl font-semibold tracking-tight">Профиль</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {user.username} · {roleLabel(user.role)}
@@ -587,7 +587,7 @@ function ProfileView({
 
       <div className="grid min-w-0 items-stretch gap-5 xl:grid-cols-2">
         <Card className="flex h-full flex-col">
-          <CardHeader className="border-b bg-muted/40">
+          <CardHeader className="border-b bg-muted/35">
             <CardTitle>Основные данные</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-1">
@@ -619,7 +619,7 @@ function ProfileView({
         </Card>
 
         <Card className="flex h-full flex-col">
-          <CardHeader className="border-b bg-muted/40">
+          <CardHeader className="border-b bg-muted/35">
             <CardTitle>Пароль</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-1">
@@ -719,7 +719,7 @@ function TasksView({
   return (
     <section className="min-w-0 space-y-5">
       <Card>
-        <CardHeader className="border-b bg-muted/40">
+        <CardHeader className="border-b bg-muted/35">
           <CardTitle>Задания</CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
@@ -732,8 +732,8 @@ function TasksView({
                   <button
                     key={task.id}
                     className={cn(
-                      "grid min-h-28 min-w-0 content-between rounded-md border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted/60",
-                      selectedTask?.id === task.id && "border-primary bg-muted",
+                      "grid min-h-28 min-w-0 content-between rounded-lg border bg-card/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/55 hover:bg-muted/55 hover:shadow-md",
+                      selectedTask?.id === task.id && "border-primary bg-primary/10 shadow-md",
                     )}
                     onClick={() => onOpenTask(task.id)}
                   >
@@ -810,7 +810,7 @@ function CreateTaskView({
 }) {
   return (
     <section className="min-w-0 space-y-5">
-      <div className="surface max-w-[1100px] rounded-lg p-5">
+      <div className="section-shell max-w-[1100px] rounded-lg p-5">
         <h1 className="text-2xl font-semibold tracking-tight">Новое задание</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Текст задания, срок сдачи, группа и автоматические тесты.
@@ -887,7 +887,7 @@ function TaskCreateForm({
 
   return (
     <Card className="max-w-[1100px]">
-      <CardHeader className="border-b bg-muted/40">
+      <CardHeader className="border-b bg-muted/35">
         <CardTitle>Параметры задания</CardTitle>
       </CardHeader>
       <CardContent>
@@ -937,7 +937,7 @@ function TaskCreateForm({
             />
           </Field>
 
-          <div className="space-y-3 rounded-lg border bg-muted/40 p-4">
+          <div className="space-y-3 rounded-lg border bg-muted/35 p-4">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-medium">Автоматические тесты</p>
               <Button
@@ -954,7 +954,7 @@ function TaskCreateForm({
               </Button>
             </div>
             {testCases.map((testCase, index) => (
-              <div key={index} className="min-w-0 space-y-3 rounded-md border bg-card p-3">
+              <div key={index} className="min-w-0 space-y-3 rounded-lg border bg-card/80 p-3 shadow-sm">
                 <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                   <Textarea
                     className="min-h-28 font-mono text-[13px]"
@@ -1080,7 +1080,7 @@ function TaskDetailView({
             {task.test_cases.map((testCase) => (
               <div
                 key={testCase.id}
-                className="min-w-0 space-y-2 rounded-md border bg-muted/40 p-3"
+                className="min-w-0 space-y-2 rounded-lg border bg-muted/35 p-3"
               >
                 {testCase.is_hidden && <Badge variant="warning">Скрытый</Badge>}
                 <div className="grid min-w-0 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -1221,8 +1221,8 @@ function TeacherSubmissionsPanel({
                   <button
                     key={submission.id}
                     className={cn(
-                      "w-full min-w-0 rounded-md border p-3 text-left text-sm hover:bg-muted",
-                      active?.id === submission.id && "border-primary bg-muted",
+                      "w-full min-w-0 rounded-lg border bg-card/70 p-3 text-left text-sm shadow-sm transition-all hover:border-primary/50 hover:bg-muted/55",
+                      active?.id === submission.id && "border-primary bg-primary/10 shadow-md",
                     )}
                     onClick={() => setActiveId(submission.id)}
                   >
@@ -1322,7 +1322,7 @@ function SubmissionsView({
           return (
             <div
               key={submission.id}
-              className="grid gap-3 rounded-md border p-4 md:grid-cols-[1fr_auto]"
+              className="grid gap-3 rounded-lg border bg-card/70 p-4 shadow-sm md:grid-cols-[1fr_auto]"
             >
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -1440,7 +1440,7 @@ function AdminView({
 
   return (
     <section className="min-w-0 space-y-5">
-      <div className="surface rounded-lg p-5">
+      <div className="section-shell rounded-lg p-5">
         <h1 className="text-2xl font-semibold tracking-tight">Панель администратора</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Пользователи, роли и учебные группы.
@@ -1448,7 +1448,7 @@ function AdminView({
       </div>
 
       <Card>
-        <CardHeader className="border-b bg-muted/40">
+        <CardHeader className="border-b bg-muted/35">
           <CardTitle>Новая группа</CardTitle>
         </CardHeader>
         <CardContent>
@@ -1473,7 +1473,7 @@ function AdminView({
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <Card>
-          <CardHeader className="border-b bg-muted/40">
+          <CardHeader className="border-b bg-muted/35">
             <CardTitle>Группы</CardTitle>
             <CardDescription>{groups.length} всего</CardDescription>
           </CardHeader>
@@ -1481,7 +1481,7 @@ function AdminView({
             {groups.map((group) => (
               <div
                 key={group.id}
-                className="flex min-w-0 items-center justify-between gap-3 rounded-md border p-3"
+                className="flex min-w-0 items-center justify-between gap-3 rounded-lg border bg-card/70 p-3 shadow-sm"
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{group.title}</p>
@@ -1501,7 +1501,7 @@ function AdminView({
         </Card>
 
         <Card>
-          <CardHeader className="border-b bg-muted/40">
+          <CardHeader className="border-b bg-muted/35">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <CardTitle>Пользователи</CardTitle>
@@ -1517,7 +1517,7 @@ function AdminView({
                 return (
                   <div
                     key={item.id}
-                    className="grid min-w-0 gap-3 rounded-md border p-3 lg:grid-cols-[minmax(0,1fr)_190px_110px]"
+                    className="grid min-w-0 gap-3 rounded-lg border bg-card/70 p-3 shadow-sm lg:grid-cols-[minmax(0,1fr)_190px_110px]"
                   >
                     <div className="min-w-0">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -1579,8 +1579,8 @@ function CodeTextarea({
   const lineCount = Math.max(1, value.split("\n").length);
 
   return (
-    <div className="grid min-h-[420px] min-w-0 grid-cols-[56px_minmax(0,1fr)] overflow-hidden rounded-md border bg-card focus-within:ring-2 focus-within:ring-ring">
-      <div className="code-panel select-none overflow-hidden border-r bg-muted py-3 text-right font-mono text-[13px] leading-5 text-muted-foreground">
+    <div className="grid min-h-[420px] min-w-0 grid-cols-[56px_minmax(0,1fr)] overflow-hidden rounded-lg border bg-card/90 shadow-inner focus-within:ring-2 focus-within:ring-ring">
+      <div className="code-panel select-none overflow-hidden border-r bg-muted/70 py-3 text-right font-mono text-[13px] leading-5 text-muted-foreground">
         {Array.from({ length: lineCount }, (_, index) => (
           <div key={index} className="px-3">
             {index + 1}
@@ -1589,7 +1589,7 @@ function CodeTextarea({
       </div>
       <textarea
         required={required}
-        className="code-panel min-h-[420px] w-full min-w-0 resize-y border-0 bg-card px-3 py-3 font-mono text-[13px] leading-5 outline-none"
+        className="code-panel min-h-[420px] w-full min-w-0 resize-y border-0 bg-card/90 px-3 py-3 font-mono text-[13px] leading-5 outline-none"
         spellCheck={false}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -1621,7 +1621,7 @@ function CodeViewer({
   }
 
   return (
-    <div className="code-panel min-h-[420px] max-h-[640px] min-w-0 overflow-auto rounded-md border bg-card">
+    <div className="code-panel min-h-[420px] max-h-[640px] min-w-0 overflow-auto rounded-lg border bg-card/90 shadow-inner">
       <div
         className="relative"
         style={{
@@ -1631,7 +1631,7 @@ function CodeViewer({
         }}
       >
         <div
-          className="absolute inset-y-0 left-0 border-r bg-muted"
+          className="absolute inset-y-0 left-0 border-r bg-muted/70"
           style={{ width: gutterWidthPx }}
         />
         {lines.map((line, index) => {
@@ -1759,7 +1759,7 @@ function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-40 grid place-items-center bg-slate-950/40 px-4">
-      <div className="w-full max-w-md rounded-lg border bg-card p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-lg border bg-card/95 p-5 shadow-2xl backdrop-blur">
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
         <div className="mt-5 flex justify-end gap-2">
@@ -1777,10 +1777,10 @@ function ConfirmDialog({
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="section-shell">
+      <CardHeader className="pt-6">
         <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-3xl">{value}</CardTitle>
+        <CardTitle className="text-4xl text-primary">{value}</CardTitle>
       </CardHeader>
     </Card>
   );
@@ -1798,8 +1798,8 @@ function NavButton({
   return (
     <button
       className={cn(
-        "flex h-10 w-full items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-muted",
-        active && "bg-primary text-primary-foreground hover:bg-primary",
+        "flex h-10 w-full items-center rounded-md px-3 text-sm font-semibold transition-all hover:bg-muted/70",
+        active && "bg-primary text-primary-foreground shadow-sm shadow-primary/25 hover:bg-primary",
       )}
       onClick={onClick}
     >
@@ -1825,7 +1825,7 @@ function ResultBlock({ title, value }: { title: string; value: string }) {
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">{title}</p>
-      <pre className="code-panel min-h-32 max-h-72 overflow-auto whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+      <pre className="code-panel min-h-32 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted/55 p-4 text-sm">
         {value}
       </pre>
     </div>
