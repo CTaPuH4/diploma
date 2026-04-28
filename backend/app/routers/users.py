@@ -19,7 +19,7 @@ async def get_user_or_404(db: AsyncSession, user_id: int) -> User:
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id={user_id} was not found",
+            detail=f"Пользователь с id={user_id} не найден",
         )
     return user
 
@@ -54,7 +54,7 @@ async def update_current_user(
         if await db.get(Group, user_data.group_id) is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Group with id={user_data.group_id} was not found",
+                detail=f"Группа с id={user_data.group_id} не найдена",
             )
         user.group_id = user_data.group_id
 
@@ -73,7 +73,7 @@ async def change_password(
     if not verify_password(password_data.old_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid current password",
+            detail="Неверный текущий пароль",
         )
 
     user.hashed_password = get_password_hash(password_data.new_password)
@@ -101,7 +101,7 @@ async def update_user(
         if await db.get(Group, user_data.group_id) is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Group with id={user_data.group_id} was not found",
+                detail=f"Группа с id={user_data.group_id} не найдена",
             )
         user.group_id = user_data.group_id
 
@@ -119,7 +119,7 @@ async def delete_user(
     if user_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot delete your own account",
+            detail="Нельзя удалить собственный аккаунт",
         )
 
     user = await get_user_or_404(db, user_id)

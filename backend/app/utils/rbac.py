@@ -15,7 +15,7 @@ class PermissionChecker:
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Authentication is required",
+                    detail="Требуется авторизация",
                 )
 
             if user.role == UserRole.admin:
@@ -24,7 +24,7 @@ class PermissionChecker:
             if user.role not in self.roles:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions",
+                    detail="Недостаточно прав",
                 )
             return await func(*args, **kwargs)
 

@@ -55,13 +55,13 @@ async def create_submission(
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
+            detail="Задание не найдено",
         )
 
     if task.group_id != current_user.group_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only submit solutions for tasks assigned to your group",
+            detail="Вы можете отправлять решения только для заданий своей группы",
         )
 
     task_has_test_cases = await has_test_cases(db, task.id)
@@ -144,13 +144,13 @@ async def get_submissions_by_task(
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
+            detail="Задание не найдено",
         )
 
     if current_user.role == UserRole.teacher and task.created_by_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only view submissions for your own tasks",
+            detail="Вы можете просматривать решения только для своих заданий",
         )
 
     result = await db.execute(
@@ -188,7 +188,7 @@ async def get_submission_by_id(
     if submission is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Submission not found",
+            detail="Решение не найдено",
         )
 
     if (
@@ -197,7 +197,7 @@ async def get_submission_by_id(
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only view submissions for your own tasks",
+            detail="Вы можете просматривать решения только для своих заданий",
         )
 
     return serialize_teacher_submission(submission)
@@ -224,7 +224,7 @@ async def grade_submission(
     if submission is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Submission not found",
+            detail="Решение не найдено",
         )
 
     if (
@@ -233,7 +233,7 @@ async def grade_submission(
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only grade submissions for your own tasks",
+            detail="Вы можете оценивать решения только для своих заданий",
         )
 
     submission.grade = update_data.grade

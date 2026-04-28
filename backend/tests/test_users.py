@@ -60,4 +60,4 @@ async def test_change_password_rejects_wrong_current_password(client, session_fa
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Invalid current password"
+    assert response.json()["detail"] == "Неверный текущий пароль"

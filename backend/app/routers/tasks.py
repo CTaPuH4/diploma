@@ -40,7 +40,7 @@ async def create_task(
     if await db.get(Group, task_data.group_id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Group with id={task_data.group_id} was not found",
+            detail=f"Группа с id={task_data.group_id} не найдена",
         )
 
     new_task = Task(
@@ -104,13 +104,13 @@ async def delete_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id={task_id} was not found",
+            detail=f"Задание с id={task_id} не найдено",
         )
 
     if current_user.id != task.created_by_id and current_user.role != UserRole.admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not the creator of this task",
+            detail="Вы не являетесь автором этого задания",
         )
 
     await db.delete(task)
@@ -133,7 +133,7 @@ async def get_task_detail(
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
+            detail="Задание не найдено",
         )
 
     if not (
@@ -146,7 +146,7 @@ async def get_task_detail(
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have access to this task",
+            detail="У вас нет доступа к этому заданию",
         )
 
     visible_test_cases = (

@@ -33,7 +33,7 @@ async def create_group(
     if result.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A group with this slug already exists",
+            detail="Группа с таким кодом уже существует",
         )
 
     new_group = Group(slug=group_data.slug, title=group_data.title)
@@ -54,7 +54,7 @@ async def delete_group(
     if not group:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Group not found",
+            detail="Группа не найдена",
         )
 
     await db.delete(group)

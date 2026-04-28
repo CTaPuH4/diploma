@@ -18,7 +18,6 @@ class UserRegister(BaseModel):
     username: str
     full_name: str
     password: str
-    group_id: Optional[int] = None
 
 
 class UserLogin(BaseModel):

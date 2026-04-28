@@ -1,20 +1,16 @@
 from sqlalchemy import select
 
 from app.models.user import User, UserRole
-from tests.factories import create_group, create_user
+from tests.factories import create_user
 
 
 async def test_register_creates_student_and_returns_token(client, session_factory):
-    async with session_factory() as session:
-        group = await create_group(session, slug="iu7-31b", title="IU7-31B")
-
     response = await client.post(
         "/auth/register",
         json={
             "username": "new-student",
             "full_name": "New Student",
             "password": "strong-pass",
-            "group_id": group.id,
         },
     )
 
@@ -30,7 +26,7 @@ async def test_register_creates_student_and_returns_token(client, session_factor
         user = result.scalar_one()
         assert user.full_name == "New Student"
         assert user.role == UserRole.student
-        assert user.group_id == group.id
+        assert user.group_id is None
 
 
 async def test_login_rejects_invalid_password(client, session_factory):
@@ -52,4 +48,4 @@ async def test_login_rejects_invalid_password(client, session_factory):
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid username or password"
+    assert response.json()["detail"] == "Неверный логин или пароль"

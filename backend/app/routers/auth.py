@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from app.database import get_db
-from app.models.group import Group
 from app.models.user import User, UserRole
 from app.schemas.auth import Token, UserRegister
 from app.core.config import settings
@@ -24,13 +23,7 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
     if result.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this username already exists",
-        )
-
-    if user_data.group_id is not None and await db.get(Group, user_data.group_id) is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Group with id={user_data.group_id} was not found",
+            detail="Пользователь с таким логином уже существует",
         )
 
     hashed_password = get_password_hash(user_data.password)
@@ -40,7 +33,6 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
         full_name=user_data.full_name,
         hashed_password=hashed_password,
         role=UserRole.student,
-        group_id=user_data.group_id,
     )
 
     db.add(new_user)
@@ -66,14 +58,14 @@ async def login(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
+            detail="Неверный логин или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
+            detail="Неверный логин или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

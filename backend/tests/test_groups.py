@@ -41,4 +41,4 @@ async def test_student_cannot_create_group(client, session_factory):
     )
 
     assert response.status_code == 403
-    assert response.json()["detail"] == "Insufficient permissions"
+    assert response.json()["detail"] == "Недостаточно прав"

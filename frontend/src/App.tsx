@@ -264,7 +264,7 @@ function App() {
           )}
           {user.role === "admin" && (
             <NavButton active={view === "admin"} onClick={() => setView("admin")}>
-              Админка
+              Панель администратора
             </NavButton>
           )}
         </aside>
@@ -380,7 +380,6 @@ function AuthScreen({
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
-  const [groupId, setGroupId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -396,7 +395,6 @@ function AuthScreen({
               username,
               full_name: fullName,
               password,
-              group_id: groupId ? Number(groupId) : null,
             });
       onToken(token.access_token);
     } catch (error) {
@@ -440,19 +438,9 @@ function AuthScreen({
               <Input value={username} onChange={(event) => setUsername(event.target.value)} />
             </Field>
             {mode === "register" && (
-              <>
-                <Field label="ФИО">
-                  <Input value={fullName} onChange={(event) => setFullName(event.target.value)} />
-                </Field>
-                <Field label="ID группы">
-                  <Input
-                    type="number"
-                    min="1"
-                    value={groupId}
-                    onChange={(event) => setGroupId(event.target.value)}
-                  />
-                </Field>
-              </>
+              <Field label="ФИО">
+                <Input value={fullName} onChange={(event) => setFullName(event.target.value)} />
+              </Field>
             )}
             <Field label="Пароль">
               <Input
@@ -764,12 +752,18 @@ function TasksView({
                       {user.role === "student" && task.created_by_full_name && (
                         <p className="truncate">Автор: {task.created_by_full_name}</p>
                       )}
-                      <p className="truncate">{formatDate(task.deadline)}</p>
+                      <p className="truncate">
+                        {task.deadline ? `Срок сдачи: ${formatDate(task.deadline)}` : formatDate(task.deadline)}
+                      </p>
                     </div>
                   </button>
                 );
               })}
             </div>
+          ) : user.role === "student" && user.group_id === null ? (
+            <p className="text-sm text-muted-foreground">
+              Чтобы увидеть задания, нужно выбрать группу во вкладке «Профиль».
+            </p>
           ) : (
             <p className="text-sm text-muted-foreground">Заданий пока нет.</p>
           )}
@@ -819,7 +813,7 @@ function CreateTaskView({
       <div className="surface max-w-[1100px] rounded-lg p-5">
         <h1 className="text-2xl font-semibold tracking-tight">Новое задание</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Текст задания, дедлайн, группа и автоматические тесты.
+          Текст задания, срок сдачи, группа и автоматические тесты.
         </p>
       </div>
       <TaskCreateForm
@@ -907,7 +901,7 @@ function TaskCreateForm({
                 <option value="">Выберите</option>
                 {groups.map((group) => (
                   <option key={group.id} value={group.id}>
-                    {group.title}
+                    {group.slug}
                   </option>
                 ))}
               </Select>
@@ -1067,7 +1061,7 @@ function TaskDetailView({
               <CardDescription className="mt-1">
                 {group?.title ?? `Группа #${task.group_id}`} ·{" "}
                 {task.created_by_full_name ? `${task.created_by_full_name} · ` : ""}
-                {formatDate(task.deadline)}
+                {task.deadline ? `Срок сдачи: ${formatDate(task.deadline)}` : formatDate(task.deadline)}
               </CardDescription>
             </div>
             {(user.role === "teacher" || user.role === "admin") && (
@@ -1137,6 +1131,7 @@ function TaskDetailView({
       ) : (
         <TeacherSubmissionsPanel
           api={api}
+          task={task}
           submissions={teacherSubmissions}
           setMessage={setMessage}
           notify={notify}
@@ -1159,12 +1154,14 @@ function TaskDetailView({
 
 function TeacherSubmissionsPanel({
   api,
+  task,
   submissions,
   setMessage,
   notify,
   onChanged,
 }: {
   api: ReturnType<typeof createApi>;
+  task: TaskDetail;
   submissions: TeacherSubmission[];
   setMessage: (message: string | null) => void;
   notify: Notify;
@@ -1217,21 +1214,34 @@ function TeacherSubmissionsPanel({
         ) : (
           <div className="min-w-0 space-y-4">
             <div className="grid max-h-[260px] min-w-0 gap-2 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
-              {submissions.map((submission) => (
-                <button
-                  key={submission.id}
-                  className={cn(
-                    "w-full min-w-0 rounded-md border p-3 text-left text-sm hover:bg-muted",
-                    active?.id === submission.id && "border-primary bg-muted",
-                  )}
-                  onClick={() => setActiveId(submission.id)}
-                >
-                  <p className="truncate font-medium">{submission.student_full_name ?? "Студент"}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {statusLabel(submission.status)} · {formatDate(submission.created_at)}
-                  </p>
-                </button>
-              ))}
+              {submissions.map((submission) => {
+                const isLate = isSubmissionLate(submission, task);
+
+                return (
+                  <button
+                    key={submission.id}
+                    className={cn(
+                      "w-full min-w-0 rounded-md border p-3 text-left text-sm hover:bg-muted",
+                      active?.id === submission.id && "border-primary bg-muted",
+                    )}
+                    onClick={() => setActiveId(submission.id)}
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <p className="truncate font-medium">
+                        {submission.student_full_name ?? "Студент"}
+                      </p>
+                      {isLate && (
+                        <Badge className="shrink-0" variant="danger">
+                          После срока
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {statusLabel(submission.status)} · {formatDate(submission.created_at)}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
             {active && (
               <div className="min-w-0 space-y-4">
@@ -1239,6 +1249,9 @@ function TeacherSubmissionsPanel({
                   <StatusBadge status={active.status} />
                   <Badge variant="outline">{active.language}</Badge>
                   {active.grade !== null && <Badge variant="secondary">{active.grade}/54</Badge>}
+                  {isSubmissionLate(active, task) && (
+                    <Badge variant="danger">Решение отправлено после срока сдачи</Badge>
+                  )}
                 </div>
                 <CodeViewer code={active.code} comments={active.inline_comments} />
                 {active.test_result && <ResultBlock title="Автоматические тесты" value={active.test_result} />}
@@ -1423,76 +1436,124 @@ function AdminView({
     }
   }
 
+  const groupById = new Map(groups.map((group) => [group.id, group]));
+
   return (
-    <section className="grid gap-4 xl:grid-cols-[360px_1fr]">
-      <div className="space-y-4">
+    <section className="min-w-0 space-y-5">
+      <div className="surface rounded-lg p-5">
+        <h1 className="text-2xl font-semibold tracking-tight">Панель администратора</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Пользователи, роли и учебные группы.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader className="border-b bg-muted/40">
+          <CardTitle>Новая группа</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="grid min-w-0 gap-3 pt-5 md:grid-cols-[220px_minmax(0,1fr)_auto]"
+            onSubmit={createGroup}
+          >
+            <Field label="Код группы">
+              <Input required value={slug} onChange={(event) => setSlug(event.target.value)} />
+            </Field>
+            <Field label="Название">
+              <Input required value={title} onChange={(event) => setTitle(event.target.value)} />
+            </Field>
+            <div className="flex items-end">
+              <Button className="w-full md:w-auto" type="submit">
+                Создать
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <Card>
-          <CardHeader>
-            <CardTitle>Новая группа</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-3" onSubmit={createGroup}>
-              <Field label="Slug">
-                <Input required value={slug} onChange={(event) => setSlug(event.target.value)} />
-              </Field>
-              <Field label="Название">
-                <Input required value={title} onChange={(event) => setTitle(event.target.value)} />
-              </Field>
-              <Button type="submit">Создать</Button>
-            </form>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
+          <CardHeader className="border-b bg-muted/40">
             <CardTitle>Группы</CardTitle>
+            <CardDescription>{groups.length} всего</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="max-h-[560px] space-y-2 overflow-y-auto pt-5">
             {groups.map((group) => (
-              <div key={group.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
-                <div>
-                  <p className="font-medium">{group.title}</p>
+              <div
+                key={group.id}
+                className="flex min-w-0 items-center justify-between gap-3 rounded-md border p-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{group.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    #{group.id} · {group.slug}
+                    #{group.id} · код {group.slug}
                   </p>
                 </div>
-                <Button variant="outline" onClick={() => deleteGroup(group.id)}>
+                <Button className="shrink-0" variant="outline" onClick={() => deleteGroup(group.id)}>
                   Удалить
                 </Button>
               </div>
             ))}
+            {groups.length === 0 && (
+              <p className="text-sm text-muted-foreground">Группы ещё не созданы.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="border-b bg-muted/40">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <CardTitle>Пользователи</CardTitle>
+                <CardDescription>{users.length} всего</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="max-h-[680px] overflow-y-auto pt-5">
+            <div className="space-y-2">
+              {users.map((item) => {
+                const group = item.group_id ? groupById.get(item.group_id) : null;
+
+                return (
+                  <div
+                    key={item.id}
+                    className="grid min-w-0 gap-3 rounded-md border p-3 lg:grid-cols-[minmax(0,1fr)_190px_110px]"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <p className="truncate font-medium">{item.full_name}</p>
+                        <Badge variant="outline">{roleLabel(item.role)}</Badge>
+                      </div>
+                      <p className="mt-1 truncate text-sm text-muted-foreground">
+                        {item.username} · {group?.title ?? "группа не назначена"}
+                      </p>
+                    </div>
+                    <Select
+                      value={item.role}
+                      onChange={(event) => updateRole(item.id, event.target.value as UserRole)}
+                    >
+                      <option value="student">Студент</option>
+                      <option value="teacher">Преподаватель</option>
+                      <option value="admin">Администратор</option>
+                    </Select>
+                    <Button
+                      className="w-full"
+                      variant="destructive"
+                      disabled={item.id === currentUserId}
+                      onClick={() => deleteUser(item.id)}
+                    >
+                      Удалить
+                    </Button>
+                  </div>
+                );
+              })}
+              {users.length === 0 && (
+                <p className="text-sm text-muted-foreground">Пользователей пока нет.</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Пользователи</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {users.map((item) => (
-            <div key={item.id} className="grid gap-3 rounded-md border p-3 md:grid-cols-[1fr_180px_auto]">
-              <div>
-                <p className="font-medium">{item.full_name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {item.username} · группа {item.group_id ?? "не назначена"}
-                </p>
-              </div>
-              <Select value={item.role} onChange={(event) => updateRole(item.id, event.target.value as UserRole)}>
-                <option value="student">Студент</option>
-                <option value="teacher">Преподаватель</option>
-                <option value="admin">Администратор</option>
-              </Select>
-              <Button
-                variant="destructive"
-                disabled={item.id === currentUserId}
-                onClick={() => deleteUser(item.id)}
-              >
-                Удалить
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </section>
   );
 }
@@ -1629,6 +1690,10 @@ function CodeViewer({
 function formatCommentRange(comment: InlineComment) {
   const end = comment.line_end ?? comment.line_start;
   return end > comment.line_start ? `${comment.line_start}-${end}` : comment.line_start;
+}
+
+function isSubmissionLate(submission: TeacherSubmission, task: TaskDetail) {
+  return Boolean(task.deadline && new Date(submission.created_at) > new Date(task.deadline));
 }
 
 function ToastMessage({

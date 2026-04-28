@@ -80,8 +80,8 @@ async def test_student_can_create_submission_and_skip_judge_for_other_language(
             select(Submission).where(Submission.id == body["id"])
         )
         submission = result.scalar_one()
-        assert "Judge skipped" in submission.test_result
-        assert "language is not supported by the judge" in submission.test_result
+        assert "Автоматическая проверка пропущена" in submission.test_result
+        assert "выбранный язык не поддерживается автоматической проверкой" in submission.test_result
 
 
 async def test_teacher_can_grade_submission(client, session_factory):
