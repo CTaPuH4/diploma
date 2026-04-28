@@ -14,6 +14,19 @@ from tests.factories import (
     make_auth_headers,
 )
 
+JUDGE_SKIPPED_DETAIL = (
+    "\u0410\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0430\u044f "
+    "\u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 "
+    "\u043f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u0430"
+)
+UNSUPPORTED_LANGUAGE_DETAIL = (
+    "\u043d\u0435 "
+    "\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f "
+    "\u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u043e\u0439 "
+    "\u043f\u0440\u043e\u0432\u0435\u0440\u043a\u043e\u0439"
+)
+
+
 async def noop_background_job(*args, **kwargs):
     return None
 
@@ -80,8 +93,8 @@ async def test_student_can_create_submission_and_skip_judge_for_other_language(
             select(Submission).where(Submission.id == body["id"])
         )
         submission = result.scalar_one()
-        assert "Автоматическая проверка пропущена" in submission.test_result
-        assert "выбранный язык не поддерживается автоматической проверкой" in submission.test_result
+        assert JUDGE_SKIPPED_DETAIL in submission.test_result
+        assert UNSUPPORTED_LANGUAGE_DETAIL in submission.test_result
 
 
 async def test_teacher_can_grade_submission(client, session_factory):

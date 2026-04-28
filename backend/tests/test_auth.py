@@ -3,6 +3,12 @@ from sqlalchemy import select
 from app.models.user import User, UserRole
 from tests.factories import create_user
 
+INVALID_LOGIN_DETAIL = (
+    "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 "
+    "\u043b\u043e\u0433\u0438\u043d \u0438\u043b\u0438 "
+    "\u043f\u0430\u0440\u043e\u043b\u044c"
+)
+
 
 async def test_register_creates_student_and_returns_token(client, session_factory):
     response = await client.post(
@@ -48,4 +54,4 @@ async def test_login_rejects_invalid_password(client, session_factory):
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Неверный логин или пароль"
+    assert response.json()["detail"] == INVALID_LOGIN_DETAIL

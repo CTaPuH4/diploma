@@ -3,6 +3,12 @@ from sqlalchemy import select
 from app.models.user import User, UserRole
 from tests.factories import create_group, create_user, make_auth_headers
 
+INVALID_CURRENT_PASSWORD_DETAIL = (
+    "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 "
+    "\u0442\u0435\u043a\u0443\u0449\u0438\u0439 "
+    "\u043f\u0430\u0440\u043e\u043b\u044c"
+)
+
 
 async def test_user_can_update_own_profile(client, session_factory):
     async with session_factory() as session:
@@ -60,4 +66,4 @@ async def test_change_password_rejects_wrong_current_password(client, session_fa
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Неверный текущий пароль"
+    assert response.json()["detail"] == INVALID_CURRENT_PASSWORD_DETAIL
