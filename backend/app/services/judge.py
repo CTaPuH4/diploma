@@ -108,6 +108,60 @@ def normalize(s: str) -> str:
     return (s or "").strip().replace("\r", "")
 
 
+def summarize_system_error(stderr: str) -> str:
+    lines = [line.strip() for line in stderr.splitlines() if line.strip()]
+    if not lines:
+        return "Сервис автоматической проверки не смог быть запущен."
+
+    preview = " ".join(lines[:2])
+    return (
+        "Сервис автоматической проверки не смог быть запущен.\n"
+        f"Краткая информация: {preview}"
+    )
+
+
+def summarize_compilation_error(stderr: str) -> str:
+    messages = []
+
+    for line in stderr.splitlines():
+        text = line.strip()
+        if not text or ": error:" not in text:
+            continue
+
+        location, message = text.split(": error:", 1)
+        parts = location.rsplit(":", 2)
+        message = message.strip()
+
+        if len(parts) >= 2 and parts[-2].isdigit():
+            line_number = parts[-2]
+            messages.append(f"Строка {line_number}: {message}")
+        else:
+            messages.append(message)
+
+    if not messages:
+        lines = [line.strip() for line in stderr.splitlines() if line.strip()]
+        preview = " ".join(lines[:2]) if lines else "Компилятор не вернул подробностей."
+        return f"Компиляция не удалась.\nКраткая информация: {preview}"
+
+    unique_messages = []
+    seen = set()
+    for message in messages:
+        if message in seen:
+            continue
+        seen.add(message)
+        unique_messages.append(message)
+
+    shown_messages = unique_messages[:3]
+    remaining = len(unique_messages) - len(shown_messages)
+
+    summary_lines = ["Компиляция не удалась.", "Ключевые ошибки:"]
+    summary_lines.extend(f"- {message}" for message in shown_messages)
+    if remaining > 0:
+        summary_lines.append(f"- И еще {remaining} ошибок.")
+
+    return "\n".join(summary_lines)
+
+
 async def judge_submission(submission_id: int, code: str, task_id: int, language: str):
     print(f"JUDGE START: {submission_id}")
 
@@ -141,7 +195,7 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
                 submission.test_result = format_test_result(
                     0,
                     len(tests),
-                    summary=f"Ошибка запуска автоматической проверки:\n{err}",
+                    summary=summarize_system_error(err),
                 )
                 await db.commit()
                 await finalize_submission_review_status(submission_id)
@@ -161,7 +215,7 @@ async def judge_submission(submission_id: int, code: str, task_id: int, language
                     submission.test_result = format_test_result(
                         0,
                         len(tests),
-                        summary=f"Ошибка компиляции:\n{err}",
+                        summary=summarize_compilation_error(err),
                     )
                     await db.commit()
                     await finalize_submission_review_status(submission_id)

@@ -1606,13 +1606,12 @@ function CodeViewer({
   comments?: InlineComment[];
 }) {
   const lines = code.length > 0 ? code.split("\n") : [""];
+  const visibleComments = comments ?? [];
   const highlightedLines = new Set<number>();
-  const rowHeightPx = 24;
   const gutterWidthPx = 56;
   const codeMinWidthPx = 760;
-  const commentWidthPx = 300;
 
-  for (const comment of comments ?? []) {
+  for (const comment of visibleComments) {
     const line = Math.max(1, comment.line_start);
     const end = Math.max(line, comment.line_end ?? line);
     for (let lineNumber = line; lineNumber <= end; lineNumber += 1) {
@@ -1621,68 +1620,61 @@ function CodeViewer({
   }
 
   return (
-    <div className="code-panel min-h-[420px] max-h-[640px] min-w-0 overflow-auto rounded-lg border bg-card/90 shadow-inner">
-      <div
-        className="relative"
-        style={{
-          minWidth: gutterWidthPx + codeMinWidthPx,
-          minHeight: 420,
-          height: Math.max(420, lines.length * rowHeightPx),
-        }}
-      >
+    <div
+      className={cn(
+        "min-w-0 gap-3",
+        visibleComments.length > 0 && "grid xl:grid-cols-[minmax(0,1fr)_320px]",
+      )}
+    >
+      <div className="code-panel min-h-[420px] max-h-[640px] min-w-0 overflow-auto rounded-lg border bg-card/90 shadow-inner">
         <div
-          className="absolute inset-y-0 left-0 border-r bg-muted/70"
-          style={{ width: gutterWidthPx }}
-        />
-        {lines.map((line, index) => {
-          const lineNumber = index + 1;
-          const isHighlighted = highlightedLines.has(lineNumber);
+          className="min-h-[420px]"
+          style={{ minWidth: gutterWidthPx + codeMinWidthPx }}
+        >
+          {lines.map((line, index) => {
+            const lineNumber = index + 1;
+            const isHighlighted = highlightedLines.has(lineNumber);
 
-          return (
-            <div
-              key={lineNumber}
-              className={cn(
-                "absolute left-0 grid grid-cols-[56px_minmax(0,1fr)] font-mono text-[13px] leading-6",
-                isHighlighted && "bg-amber-50 dark:bg-amber-950/40",
-              )}
-              style={{
-                top: index * rowHeightPx,
-                height: rowHeightPx,
-                width: "100%",
-                minWidth: gutterWidthPx + codeMinWidthPx,
-              }}
-            >
+            return (
               <div
+                key={lineNumber}
                 className={cn(
-                  "select-none border-r px-3 text-right text-muted-foreground",
-                  isHighlighted && "bg-amber-100/70 dark:bg-amber-900/50",
+                  "grid min-h-6 grid-cols-[56px_minmax(760px,1fr)] font-mono text-[13px] leading-6",
+                  isHighlighted && "bg-amber-50 dark:bg-amber-950/40",
                 )}
               >
-                {lineNumber}
+                <div
+                  className={cn(
+                    "select-none border-r bg-muted/70 px-3 text-right text-muted-foreground",
+                    isHighlighted && "bg-amber-100/70 dark:bg-amber-900/50",
+                  )}
+                >
+                  {lineNumber}
+                </div>
+                <pre className="overflow-visible whitespace-pre px-3 text-foreground">
+                  {line || " "}
+                </pre>
               </div>
-              <pre className="overflow-visible whitespace-pre px-3 text-foreground">
-                {line || " "}
-              </pre>
-            </div>
-          );
-        })}
-        {(comments ?? []).map((comment, index) => (
-          <div
-            key={`${comment.line_start}-${index}`}
-            className="absolute rounded border border-amber-200 bg-amber-100/95 px-2 py-1 font-sans text-xs leading-5 text-amber-950 shadow-sm dark:border-amber-700 dark:bg-amber-950/95 dark:text-amber-100"
-            style={{
-              top: (Math.max(1, comment.line_start) - 1) * rowHeightPx + 2,
-              right: 12,
-              width: commentWidthPx,
-            }}
-          >
-            <span className="mr-2 font-medium text-amber-800 dark:text-amber-300">
-              {formatCommentRange(comment)}
-            </span>
-            {comment.text}
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
+
+      {visibleComments.length > 0 && (
+        <aside className="code-panel max-h-[640px] min-w-0 space-y-2 overflow-y-auto rounded-lg border bg-card/90 p-3 shadow-inner">
+          {visibleComments.map((comment, index) => (
+            <div
+              key={`${comment.line_start}-${index}`}
+              className="rounded-lg border border-amber-200 bg-amber-100/90 px-3 py-2 text-xs leading-5 text-amber-950 shadow-sm dark:border-amber-700 dark:bg-amber-950/85 dark:text-amber-100"
+            >
+              <p className="mb-1 font-semibold text-amber-800 dark:text-amber-300">
+                Строка {formatCommentRange(comment)}
+              </p>
+              <p>{comment.text}</p>
+            </div>
+          ))}
+        </aside>
+      )}
     </div>
   );
 }
